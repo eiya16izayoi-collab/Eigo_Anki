@@ -3,45 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>英単語意味テスト（記述版）</title>
+    <title>abceed Style Test</title>
     <style>
-        body { font-family: "Helvetica Neue", Arial, sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        #app { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 450px; text-align: center; }
-        .question-box { background: #2d3748; color: white; padding: 40px 20px; border-radius: 15px; font-size: 32px; font-weight: bold; margin-bottom: 20px; letter-spacing: 1px; }
-        input[type="text"] { width: 90%; padding: 15px; font-size: 20px; border: 2px solid #ddd; border-radius: 10px; text-align: center; margin-bottom: 15px; outline: none; }
-        .btn-main { width: 100%; padding: 15px; background: #48bb78; color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 18px; font-weight: bold; }
-        #result-message { font-size: 18px; font-weight: bold; margin: 15px 0; min-height: 1.5em; }
-        .wrong-list-item { text-align: left; background: #fff5f5; padding: 10px; border-radius: 8px; margin-bottom: 5px; border-left: 5px solid #e53e3e; }
-        #wrong-list { max-height: 300px; overflow-y: auto; }
+        :root { --primary-color: #48bb78; --bg-color: #f8fafc; --card-bg: #ffffff; --text-main: #2d3748; }
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: var(--bg-color); color: var(--text-main); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        #app { width: 100%; max-width: 400px; padding: 20px; box-sizing: border-box; }
+        
+        /* カードデザイン */
+        .card { background: var(--card-bg); border-radius: 24px; padding: 32px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); text-align: center; }
+        
+        /* プログレスバー */
+        .progress-container { width: 100%; height: 6px; background: #edf2f7; border-radius: 10px; margin-bottom: 30px; overflow: hidden; }
+        #progress-bar { width: 0%; height: 100%; background: var(--primary-color); transition: width 0.3s ease; }
+
+        .question-word { font-size: 36px; font-weight: 800; margin-bottom: 24px; color: #1a202c; letter-spacing: -0.5px; }
+        
+        input[type="text"] { width: 100%; padding: 16px; font-size: 18px; border: 2px solid #e2e8f0; border-radius: 16px; text-align: center; margin-bottom: 20px; box-sizing: border-box; transition: border-color 0.2s; outline: none; }
+        input[type="text"]:focus { border-color: var(--primary-color); }
+
+        .btn-main { width: 100%; padding: 16px; background: var(--primary-color); color: white; border: none; border-radius: 16px; cursor: pointer; font-size: 18px; font-weight: bold; transition: transform 0.1s, opacity 0.2s; }
+        .btn-main:active { transform: scale(0.98); }
+        .btn-main:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        #result-message { font-size: 20px; font-weight: bold; margin-bottom: 15px; min-height: 1.5em; }
+        .hint-text { color: #a0aec0; font-size: 14px; margin-top: 10px; }
+        .wrong-item { text-align: left; padding: 12px; border-bottom: 1px solid #edf2f7; display: flex; justify-content: space-between; }
+        .exit-link { margin-top: 25px; display: block; color: #a0aec0; font-size: 14px; text-decoration: none; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div id="app">
-  <div id="start-screen">
-    <h1 style="font-size: 1.8rem; margin-bottom: 20px; color: #333;">英単語 ➔ 日本語</h1>
-    <p id="total-count-display" style="color: #666; margin-bottom: 30px;"></p>
-    <button class="btn-main" onclick="startApp()">特訓開始！</button>
-  </div>
-
-  <div id="quiz-screen" style="display:none;">
-    <div id="counter" style="text-align: right; color: #888; margin-bottom: 10px;">0 / 0</div>
-    <div class="question-box"><span id="word-display">...</span></div>
-    <input type="text" id="user-input" placeholder="日本語の意味を入力..." autocomplete="off">
-    <div id="result-message"></div>
-    <button id="action-btn" class="btn-main" onclick="handleAction()">判定する</button>
-    <button onclick="showResult()" style="margin-top:20px; background:none; border:none; color:#999; cursor:pointer; text-decoration:underline; font-size:14px;">途中で辞めて結果を見る</button>
-  </div>
-
-  <div id="result-screen" style="display:none;">
-    <h2>結果発表</h2>
-    <div id="score-display" style="font-size: 24px; font-weight: bold; color: #48bb78; margin-bottom: 20px;"></div>
-    <div id="wrong-area" style="display:none;">
-      <p style="font-weight: bold; color: #e53e3e;">間違えた単語：</p>
-      <div id="wrong-list"></div>
+    <div id="ui-header" style="display:none;">
+        <div class="progress-container"><div id="progress-bar"></div></div>
     </div>
-    <button class="btn-main" onclick="location.reload()" style="margin-top:20px;">トップに戻る</button>
-  </div>
+
+    <div id="start-screen" class="card">
+        <div style="background: #e6fffa; color: #38a169; width: 60px; height: 60px; line-height: 60px; border-radius: 50%; margin: 0 auto 20px; font-weight: bold; font-size: 24px;">A</div>
+        <h1 style="font-size: 24px; margin-bottom: 8px;">Word Master</h1>
+        <p style="color: #718096; margin-bottom: 32px;">今日の111単語を特訓</p>
+        <button class="btn-main" onclick="startApp()">学習を開始する</button>
+    </div>
+
+    <div id="quiz-screen" class="card" style="display:none;">
+        <div id="word-count" style="font-size: 12px; color: #a0aec0; margin-bottom: 10px;">0 / 0</div>
+        <div class="question-word" id="word-display">...</div>
+        <input type="text" id="user-input" placeholder="意味を入力" autocomplete="off">
+        <div id="result-message"></div>
+        <button id="action-btn" class="btn-main" onclick="handleAction()">判定する</button>
+        <a class="exit-link" onclick="showResult()">途中で辞める</a>
+    </div>
+
+    <div id="result-screen" class="card" style="display:none;">
+        <h2 style="margin-top:0;">学習の記録</h2>
+        <div id="score-display" style="font-size: 40px; font-weight: bold; color: var(--primary-color); margin: 20px 0;">0%</div>
+        <p id="stats-text" style="color: #718096; margin-bottom: 24px;"></p>
+        <div id="wrong-area" style="display:none; text-align: left;">
+            <p style="font-weight: bold; font-size: 14px; color: #e53e3e; border-bottom: 2px solid #fff5f5; padding-bottom: 8px;">要復習リスト</p>
+            <div id="wrong-list" style="max-height: 200px; overflow-y: auto;"></div>
+        </div>
+        <button class="btn-main" onclick="location.reload()" style="margin-top:24px; background: #4a5568;">終了して戻る</button>
+    </div>
 </div>
 
 <script>
@@ -169,11 +191,9 @@ transport,を輸送する
 `;
 
 const allWords = rawData.trim().split('\n').map(line => {
-  const [en, jp] = line.split(',');
-  return { en: en.trim(), jp: jp.trim() };
+    const [en, jp] = line.split(',');
+    return { en: en.trim(), jp: jp.trim() };
 });
-
-document.getElementById('total-count-display').innerText = `全 ${allWords.length} 問`;
 
 let currentList = [];
 let currentIndex = 0;
@@ -182,60 +202,94 @@ let wrongItems = [];
 let isAnswered = false;
 
 function startApp() {
-  currentList = [...allWords].sort(() => Math.random() - 0.5);
-  currentIndex = 0; correctCount = 0; wrongItems = [];
-  document.getElementById('start-screen').style.display = "none";
-  document.getElementById('quiz-screen').style.display = "block";
-  setupQuestion();
+    currentList = [...allWords].sort(() => Math.random() - 0.5);
+    currentIndex = 0; correctCount = 0; wrongItems = [];
+    document.getElementById('start-screen').style.display = "none";
+    document.getElementById('quiz-screen').style.display = "block";
+    document.getElementById('ui-header').style.display = "block";
+    setupQuestion();
 }
 
 function setupQuestion() {
-  isAnswered = false;
-  const item = currentList[currentIndex];
-  document.getElementById('word-display').innerText = item.en;
-  document.getElementById('counter').innerText = `${currentIndex + 1} / ${currentList.length}`;
-  document.getElementById('user-input').value = "";
-  document.getElementById('user-input').disabled = false;
-  document.getElementById('result-message').innerText = "";
-  document.getElementById('action-btn').innerText = "判定する";
-  document.getElementById('user-input').focus();
+    isAnswered = false;
+    const item = currentList[currentIndex];
+    document.getElementById('word-display').innerText = item.en;
+    document.getElementById('word-count').innerText = `${currentIndex + 1} / ${currentList.length}`;
+    document.getElementById('user-input').value = "";
+    document.getElementById('user-input').disabled = false;
+    document.getElementById('result-message').innerText = "";
+    document.getElementById('action-btn').innerText = "判定する";
+    document.getElementById('action-btn').style.background = "#48bb78";
+    
+    // プログレスバー更新
+    const progress = ((currentIndex) / currentList.length) * 100;
+    document.getElementById('progress-bar').style.width = `${progress}%`;
+    
+    setTimeout(() => document.getElementById('user-input').focus(), 10);
 }
 
 function handleAction() {
-  if (!isAnswered) checkAnswer();
-  else nextQuestion();
+    if (!isAnswered) checkAnswer();
+    else nextQuestion();
 }
 
 document.getElementById('user-input').addEventListener('keypress', (e) => {
-  if (e.key === 'Enter') handleAction();
+    if (e.key === 'Enter') handleAction();
 });
 
 function checkAnswer() {
-  const userAns = document.getElementById('user-input').value.trim();
-  const correctAns = currentList[currentIndex].jp;
-  const msg = document.getElementById('result-message');
-  isAnswered = true;
-  document.getElementById('user-input').disabled = true;
-  document.getElementById('action-btn').innerText = "次へ ➔";
+    const userAns = document.getElementById('user-input').value.trim();
+    const correctAns = currentList[currentIndex].jp;
+    const msg = document.getElementById('result-message');
+    const btn = document.getElementById('action-btn');
+    
+    isAnswered = true;
+    document.getElementById('user-input').disabled = true;
+    btn.innerText = "次へ";
+    btn.style.background = "#4a5568";
 
-  if (userAns === correctAns) {
-    msg.innerText = "正解！";
-    msg.style.color = "#28a745";
-    correctCount++;
-  } else {
-    msg.innerHTML = `正解: <span style="font-size:20px;">${correctAns}</span>`;
-    msg.style.color = "#dc3545";
-    wrongItems.push(currentList[currentIndex]);
-  }
+    if (userAns === correctAns) {
+        msg.innerText = "Excellent!";
+        msg.style.color = "#38a169";
+        correctCount++;
+    } else {
+        msg.innerHTML = `<span style="font-size:14px; color:#a0aec0;">正解:</span><br>${correctAns}`;
+        msg.style.color = "#e53e3e";
+        wrongItems.push(currentList[currentIndex]);
+    }
 }
 
 function nextQuestion() {
-  currentIndex++;
-  if (currentIndex < currentList.length) setupQuestion();
-  else showResult();
+    currentIndex++;
+    if (currentIndex < currentList.length) {
+        setupQuestion();
+    } else {
+        showResult();
+    }
 }
 
 function showResult() {
-  document.getElementById('quiz-screen').style.display = "none";
-  document.getElementById('result-screen').style.display = "block";
-  const solvedCount = isAnswered
+    document.getElementById('quiz-screen').style.display = "none";
+    document.getElementById('ui-header').style.display = "none";
+    document.getElementById('result-screen').style.display = "block";
+    
+    const solved = isAnswered ? currentIndex + 1 : currentIndex;
+    const percent = solved === 0 ? 0 : Math.round((correctCount / solved) * 100);
+    
+    document.getElementById('score-display').innerText = `${percent}%`;
+    document.getElementById('stats-text').innerText = `${solved}問中 ${correctCount}問正解`;
+    
+    if (wrongItems.length > 0) {
+        document.getElementById('wrong-area').style.display = "block";
+        const list = document.getElementById('wrong-list');
+        list.innerHTML = wrongItems.map(item => `
+            <div class="wrong-item">
+                <span style="font-weight:bold;">${item.en}</span>
+                <span style="color:#718096;">${item.jp}</span>
+            </div>
+        `).join('');
+    }
+}
+</script>
+</body>
+</html>
