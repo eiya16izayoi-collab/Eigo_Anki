@@ -9,9 +9,7 @@
         #app { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 450px; text-align: center; }
         .question-box { background: #4a90e2; color: white; padding: 40px 20px; border-radius: 15px; font-size: 24px; font-weight: bold; margin-bottom: 20px; }
         input[type="text"] { width: 90%; padding: 15px; font-size: 20px; border: 2px solid #ddd; border-radius: 10px; text-align: center; margin-bottom: 15px; outline: none; }
-        input[type="text"]:focus { border-color: #4a90e2; }
         .btn-main { width: 100%; padding: 15px; background: #4a90e2; color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 18px; font-weight: bold; }
-        .btn-main:hover { background: #357abd; }
         #result-message { font-size: 18px; font-weight: bold; margin: 15px 0; min-height: 1.5em; }
         .wrong-list-item { text-align: left; background: #fff5f5; padding: 10px; border-radius: 8px; margin-bottom: 5px; border-left: 5px solid #e53e3e; }
     </style>
@@ -21,26 +19,19 @@
 <div id="app">
   <div id="start-screen">
     <div style="font-weight: bold; color: #4a90e2; margin-bottom: 10px;">English Spelling Master</div>
-    <h1 style="font-size: 1.8rem; margin-bottom: 30px; color: #333;">英単語スペル特訓！</h1>
-    <div style="margin-bottom: 20px;">
-      <p style="font-weight: bold; color: #666;">出題数を選択：</p>
-      <div style="display: flex; justify-content: center; gap: 15px; margin-top: 10px;">
-        <label><input type="radio" name="num" value="5" checked> 5</label>
-        <label><input type="radio" name="num" value="10"> 10</label>
-        <label><input type="radio" name="num" value="20"> 20</label>
-      </div>
-    </div>
+    <h1 style="font-size: 1.8rem; margin-bottom: 20px; color: #333;">英単語スペル特訓！</h1>
+    <p id="total-count-display" style="color: #666; margin-bottom: 30px;"></p>
     <button class="btn-main" onclick="startApp()">特訓開始！</button>
   </div>
 
   <div id="quiz-screen" style="display:none;">
     <div id="counter" style="text-align: right; color: #888; margin-bottom: 10px;">0 / 0</div>
     <div class="question-box"><span id="word-display">...</span></div>
-    
     <input type="text" id="user-input" placeholder="スペルを入力..." autocomplete="off">
-    
     <div id="result-message"></div>
     <button id="action-btn" class="btn-main" onclick="handleAction()">判定する</button>
+    
+    <button onclick="showResult()" style="margin-top:20px; background:none; border:none; color:#999; cursor:pointer; text-decoration:underline; font-size:14px;">途中で辞めて結果を見る</button>
   </div>
 
   <div id="result-screen" style="display:none;">
@@ -55,7 +46,7 @@
 </div>
 
 <script>
-// ここに英単語を追加できます
+// 【ここを自由に書き換えてください】
 const rawData = `
 barely,かろうじて
 deprive,から〜を奪う
@@ -184,6 +175,9 @@ const allWords = rawData.trim().split('\n').map(line => {
   return { jp: jp.trim(), en: en.trim() };
 });
 
+// 開始画面に全問題数を表示
+document.getElementById('total-count-display').innerText = `全 ${allWords.length} 問に挑戦します`;
+
 let currentList = [];
 let currentIndex = 0;
 let correctCount = 0;
@@ -207,13 +201,11 @@ function playSound(type) {
 }
 
 function startApp() {
-  const num = parseInt(document.querySelector('input[name="num"]:checked').value);
-  const shuffled = [...allWords].sort(() => Math.random() - 0.5);
-  currentList = shuffled.slice(0, Math.min(num, allWords.length));
+  currentList = [...allWords].sort(() => Math.random() - 0.5); // 全問シャッフル
   currentIndex = 0; correctCount = 0; wrongItems = [];
-  
   document.getElementById('start-screen').style.display = "none";
   document.getElementById('quiz-screen').style.display = "block";
+  document.getElementById('result-screen').style.display = "none";
   setupQuestion();
 }
 
@@ -230,14 +222,10 @@ function setupQuestion() {
 }
 
 function handleAction() {
-  if (!isAnswered) {
-    checkAnswer();
-  } else {
-    nextQuestion();
-  }
+  if (!isAnswered) checkAnswer();
+  else nextQuestion();
 }
 
-// Enterキーでも判定できるようにする
 document.getElementById('user-input').addEventListener('keypress', (e) => {
   if (e.key === 'Enter') handleAction();
 });
@@ -246,14 +234,13 @@ function checkAnswer() {
   const userAns = document.getElementById('user-input').value.trim().toLowerCase();
   const correctAns = currentList[currentIndex].en.toLowerCase();
   const msg = document.getElementById('result-message');
-  
   isAnswered = true;
   document.getElementById('user-input').disabled = true;
   document.getElementById('action-btn').innerText = "次へ ➔";
 
   if (userAns === correctAns) {
     playSound('correct');
-    msg.innerText = "正解！ Excellent!";
+    msg.innerText = "正解！";
     msg.style.color = "#28a745";
     correctCount++;
   } else {
@@ -266,24 +253,27 @@ function checkAnswer() {
 
 function nextQuestion() {
   currentIndex++;
-  if (currentIndex < currentList.length) {
-    setupQuestion();
-  } else {
-    showResult();
-  }
+  if (currentIndex < currentList.length) setupQuestion();
+  else showResult();
 }
 
 function showResult() {
   document.getElementById('quiz-screen').style.display = "none";
   document.getElementById('result-screen').style.display = "block";
-  document.getElementById('score-display').innerText = `${currentList.length}問中 ${correctCount}問正解！`;
   
+  // 判定済みの問題数を計算
+  const solvedCount = isAnswered ? currentIndex + 1 : currentIndex;
+  document.getElementById('score-display').innerText = `${solvedCount}問中 ${correctCount}問正解！`;
+  
+  const list = document.getElementById('wrong-list');
+  list.innerHTML = "";
   if (wrongItems.length > 0) {
     document.getElementById('wrong-area').style.display = "block";
-    const list = document.getElementById('wrong-list');
     list.innerHTML = wrongItems.map(item => 
       `<div class="wrong-list-item"><strong>${item.jp}</strong> : ${item.en}</div>`
     ).join('');
+  } else {
+    document.getElementById('wrong-area').style.display = "none";
   }
 }
 </script>
