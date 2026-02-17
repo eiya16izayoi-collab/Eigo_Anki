@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>英単語スペル特訓！</title>
+    <style>
+        body { font-family: "Helvetica Neue", Arial, sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        #app { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 450px; text-align: center; }
+        .question-box { background: #4a90e2; color: white; padding: 40px 20px; border-radius: 15px; font-size: 24px; font-weight: bold; margin-bottom: 20px; }
+        input[type="text"] { width: 90%; padding: 15px; font-size: 20px; border: 2px solid #ddd; border-radius: 10px; text-align: center; margin-bottom: 15px; outline: none; }
+        input[type="text"]:focus { border-color: #4a90e2; }
+        .btn-main { width: 100%; padding: 15px; background: #4a90e2; color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 18px; font-weight: bold; }
+        .btn-main:hover { background: #357abd; }
+        #result-message { font-size: 18px; font-weight: bold; margin: 15px 0; min-height: 1.5em; }
+        .wrong-list-item { text-align: left; background: #fff5f5; padding: 10px; border-radius: 8px; margin-bottom: 5px; border-left: 5px solid #e53e3e; }
+    </style>
+</head>
+<body>
+
+<div id="app">
+  <div id="start-screen">
+    <div style="font-weight: bold; color: #4a90e2; margin-bottom: 10px;">English Spelling Master</div>
+    <h1 style="font-size: 1.8rem; margin-bottom: 30px; color: #333;">英単語スペル特訓！</h1>
+    <div style="margin-bottom: 20px;">
+      <p style="font-weight: bold; color: #666;">出題数を選択：</p>
+      <div style="display: flex; justify-content: center; gap: 15px; margin-top: 10px;">
+        <label><input type="radio" name="num" value="5" checked> 5</label>
+        <label><input type="radio" name="num" value="10"> 10</label>
+        <label><input type="radio" name="num" value="20"> 20</label>
+      </div>
+    </div>
+    <button class="btn-main" onclick="startApp()">特訓開始！</button>
+  </div>
+
+  <div id="quiz-screen" style="display:none;">
+    <div id="counter" style="text-align: right; color: #888; margin-bottom: 10px;">0 / 0</div>
+    <div class="question-box"><span id="word-display">...</span></div>
+    
+    <input type="text" id="user-input" placeholder="スペルを入力..." autocomplete="off">
+    
+    <div id="result-message"></div>
+    <button id="action-btn" class="btn-main" onclick="handleAction()">判定する</button>
+  </div>
+
+  <div id="result-screen" style="display:none;">
+    <h2>特訓終了</h2>
+    <div id="score-display" style="font-size: 24px; font-weight: bold; color: #4a90e2; margin-bottom: 20px;"></div>
+    <div id="wrong-area" style="display:none;">
+      <p style="font-weight: bold; color: #e53e3e;">要復習単語：</p>
+      <div id="wrong-list"></div>
+    </div>
+    <button class="btn-main" onclick="location.reload()" style="margin-top:20px;">トップに戻る</button>
+  </div>
+</div>
+
+<script>
+// ここに英単語を追加できます
+const rawData = `
+barely,かろうじて
+deprive,から〜を奪う
+gap,隔たり・隙間
+obstacles,障害（物）
+breath,呼吸、息
+gesture,しぐさ、身ぶり
+nod,うなずき、会釈
+seize,を(急に強く)つかむ
+stretch,を伸ばす、引っ張る
+yell,どなる、わめく
+arrest,を逮捕する
+commit,を犯す
+guilty,有罪の
+incident,事件
+innocent,罪のない、無罪の
+jail,留置所
+prison,刑務所
+proof,証拠
+suicide,自殺(的行為)
+witness,目撃者・証人
+abundant,豊富な
+amount,量・額
+calculat,(を)計算する
+equal,(〜に)等しい
+excess,過剰
+numerous,多数の
+proportion,割合
+quantity,分量・数量
+total,合計の
+volume,量・容積、((1巻))
+destination,目的地
+depart,出発する
+port,港
+guide,案内人・ガイド
+heaven,天国
+hunt,狩り
+voyage,(宇宙)旅行
+reserve,予約する
+rest,休む
+cancel,を取り消す
+decrease,減少する
+expand,を拡大する
+extend,を延長する
+restrict,を制限する
+rise,増加する
+aside,わきへ
+edges,端・ふち
+internal,内部の
+nearby,近くの
+surface,表面
+general,一般の
+abstract,抽象的な
+complex,複雑な
+mild,穏やかな
+plain,わかりやすい
+sharp,とがった
+sort,種類
+standards,標準・基準
+ordinary,平凡な
+extent,程度
+extraordinary,並外れた
+extreme,極端な
+highly,非常に
+huge,ばく大な
+incredible,信じられない(ほどの)
+intense,強烈な、激しい
+severe,深刻な
+initial,最初の
+sequence,順番
+series,ひと続き
+absent,欠席して(いる)
+aloud,声に出して
+attend,に出席する
+educate,を教育する
+facilities,施設・設備
+institute,研究所
+scholarship,奨学金
+victory,勝利
+tournament,トーナメント
+defeat,を負かす
+bunch,房
+dozen,ダース
+per,あたり
+pound(s),ポンド
+sheet,1枚
+current,現在の
+former,以前の
+lately,最近
+previous,前の
+recall,を思い出す
+atmosphere,雰囲気
+bound,～行きの
+district,地区
+exit,出口
+foundation,基礎・土台
+surround,を囲む
+benefits,利点、利益
+miracle,奇跡
+overcome,(を)克服する
+progress,進歩
+bare,むき出しの
+beard,あごひげ
+cells,細胞
+lung,肺
+muscle,筋肉
+organ,器官
+oxygen,酸素
+skin,肌
+souls,魂
+vision,視力
+ceremony,式
+formal,正式な
+occasion,機会・場合
+participate,(に)参加する
+present,出席している
+prize,賞
+commercial,商業的な
+service,サービス
+construct,を建設する
+transport,を輸送する
+`;
+
+const allWords = rawData.trim().split('\n').map(line => {
+  const [jp, en] = line.split(',');
+  return { jp: jp.trim(), en: en.trim() };
+});
+
+let currentList = [];
+let currentIndex = 0;
+let correctCount = 0;
+let wrongItems = [];
+let isAnswered = false;
+
+const ctx = new (window.AudioContext || window.webkitAudioContext)();
+function playSound(type) {
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.connect(gain); gain.connect(ctx.destination);
+  if (type === 'correct') {
+    osc.frequency.setValueAtTime(880, ctx.currentTime);
+    gain.gain.setValueAtTime(0.1, ctx.currentTime);
+    osc.start(); osc.stop(ctx.currentTime + 0.1);
+  } else {
+    osc.frequency.setValueAtTime(200, ctx.currentTime);
+    gain.gain.setValueAtTime(0.1, ctx.currentTime);
+    osc.start(); osc.stop(ctx.currentTime + 0.2);
+  }
+}
+
+function startApp() {
+  const num = parseInt(document.querySelector('input[name="num"]:checked').value);
+  const shuffled = [...allWords].sort(() => Math.random() - 0.5);
+  currentList = shuffled.slice(0, Math.min(num, allWords.length));
+  currentIndex = 0; correctCount = 0; wrongItems = [];
+  
+  document.getElementById('start-screen').style.display = "none";
+  document.getElementById('quiz-screen').style.display = "block";
+  setupQuestion();
+}
+
+function setupQuestion() {
+  isAnswered = false;
+  const item = currentList[currentIndex];
+  document.getElementById('word-display').innerText = item.jp;
+  document.getElementById('counter').innerText = `${currentIndex + 1} / ${currentList.length}`;
+  document.getElementById('user-input').value = "";
+  document.getElementById('user-input').disabled = false;
+  document.getElementById('result-message').innerText = "";
+  document.getElementById('action-btn').innerText = "判定する";
+  document.getElementById('user-input').focus();
+}
+
+function handleAction() {
+  if (!isAnswered) {
+    checkAnswer();
+  } else {
+    nextQuestion();
+  }
+}
+
+// Enterキーでも判定できるようにする
+document.getElementById('user-input').addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') handleAction();
+});
+
+function checkAnswer() {
+  const userAns = document.getElementById('user-input').value.trim().toLowerCase();
+  const correctAns = currentList[currentIndex].en.toLowerCase();
+  const msg = document.getElementById('result-message');
+  
+  isAnswered = true;
+  document.getElementById('user-input').disabled = true;
+  document.getElementById('action-btn').innerText = "次へ ➔";
+
+  if (userAns === correctAns) {
+    playSound('correct');
+    msg.innerText = "正解！ Excellent!";
+    msg.style.color = "#28a745";
+    correctCount++;
+  } else {
+    playSound('wrong');
+    msg.innerHTML = `正解: <span style="font-size:24px;">${currentList[currentIndex].en}</span>`;
+    msg.style.color = "#dc3545";
+    wrongItems.push(currentList[currentIndex]);
+  }
+}
+
+function nextQuestion() {
+  currentIndex++;
+  if (currentIndex < currentList.length) {
+    setupQuestion();
+  } else {
+    showResult();
+  }
+}
+
+function showResult() {
+  document.getElementById('quiz-screen').style.display = "none";
+  document.getElementById('result-screen').style.display = "block";
+  document.getElementById('score-display').innerText = `${currentList.length}問中 ${correctCount}問正解！`;
+  
+  if (wrongItems.length > 0) {
+    document.getElementById('wrong-area').style.display = "block";
+    const list = document.getElementById('wrong-list');
+    list.innerHTML = wrongItems.map(item => 
+      `<div class="wrong-list-item"><strong>${item.jp}</strong> : ${item.en}</div>`
+    ).join('');
+  }
+}
+</script>
+
+</body>
+</html>
