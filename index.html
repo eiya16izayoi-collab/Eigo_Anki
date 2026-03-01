@@ -3,275 +3,396 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>abceed Style Spelling Test</title>
+    <title>英単語クイズ 100問ノック</title>
     <style>
-        :root { --primary-color: #48bb78; --bg-color: #f8fafc; --card-bg: #ffffff; --text-main: #2d3748; }
-        body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: var(--bg-color); color: var(--text-main); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        #app { width: 100%; max-width: 400px; padding: 20px; box-sizing: border-box; }
-        .card { background: var(--card-bg); border-radius: 24px; padding: 32px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); text-align: center; }
-        .progress-container { width: 100%; height: 6px; background: #edf2f7; border-radius: 10px; margin-bottom: 30px; overflow: hidden; }
-        #progress-bar { width: 0%; height: 100%; background: var(--primary-color); transition: width 0.3s ease; }
-        .question-word { font-size: 32px; font-weight: 800; margin-bottom: 24px; color: #1a202c; }
-        input[type="text"] { width: 100%; padding: 16px; font-size: 18px; border: 2px solid #e2e8f0; border-radius: 16px; text-align: center; margin-bottom: 20px; box-sizing: border-box; outline: none; }
-        input[type="text"]:focus { border-color: var(--primary-color); }
-        .btn-main { width: 100%; padding: 16px; background: var(--primary-color); color: white; border: none; border-radius: 16px; cursor: pointer; font-size: 18px; font-weight: bold; }
-        #result-message { font-size: 20px; font-weight: bold; margin-bottom: 15px; min-height: 1.5em; }
-        .wrong-item { text-align: left; padding: 12px; border-bottom: 1px solid #edf2f7; display: flex; justify-content: space-between; }
-        .exit-link { margin-top: 25px; display: block; color: #a0aec0; font-size: 14px; text-decoration: none; cursor: pointer; }
+        :root {
+            --primary-red: #ff3b30;
+            --correct-green: #4bb543;
+            --bg-gray: #f2f2f7;
+            --text-main: #333;
+            --border-color: #e5e5ea;
+        }
+
+        body {
+            margin: 0; padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-gray);
+            height: 100vh; display: flex; flex-direction: column;
+        }
+
+        .top-bar {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 15px; background: #fff; border-bottom: 1px solid var(--border-color);
+        }
+
+        .exit-btn {
+            background: var(--primary-red); color: white; border: none;
+            padding: 8px 16px; border-radius: 4px; font-weight: bold; cursor: pointer;
+        }
+
+        .timer { font-weight: bold; font-family: monospace; font-size: 1.1rem; }
+
+        .app-container { flex: 1; display: flex; justify-content: center; align-items: center; padding: 20px; }
+
+        .quiz-card, .result-card {
+            background: white; width: 100%; max-width: 500px; min-height: 550px;
+            border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            display: flex; flex-direction: column; padding: 30px; box-sizing: border-box;
+            position: relative; overflow: hidden; text-align: center;
+        }
+
+        .progress { color: #8e8e93; margin-bottom: 10px; font-size: 1rem; }
+        .eng-word { font-size: 32px; margin: 20px 0; color: var(--text-main); line-height: 1.2; }
+
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+
+        .opt-btn {
+            background: #fff; border: 1px solid var(--border-color); padding: 18px;
+            border-radius: 10px; font-size: 16px; cursor: pointer; transition: 0.2s;
+            outline: none;
+        }
+
+        .opt-btn.correct-glow {
+            background-color: #eaffea !important;
+            border: 2px solid var(--correct-green) !important;
+            color: var(--correct-green) !important;
+            font-weight: bold;
+        }
+
+        .opt-btn.wrong-glow {
+            background-color: #fff0f0 !important;
+            border: 2px solid var(--primary-red) !important;
+            color: var(--primary-red) !important;
+            font-weight: bold;
+        }
+
+        .idk-btn { background: #999; color: white; border: none; padding: 18px; border-radius: 10px; font-weight: bold; cursor: pointer; }
+
+        .feedback-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 180px; pointer-events: none; opacity: 0; z-index: 10;
+        }
+        .show-feedback { opacity: 1; animation: pop 0.5s ease-out; }
+        @keyframes pop { 0% { transform: scale(0.5); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+
+        .answer-detail { margin-top: 10px; color: #888; }
+        .tap-notice { animation: blink 1s infinite; font-size: 14px; color: var(--primary-red); font-weight: bold; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+        .score-circle { font-size: 60px; color: var(--primary-red); font-weight: bold; margin: 20px 0; }
+        .wrong-list-area { flex: 1; overflow-y: auto; text-align: left; border-top: 1px solid #eee; margin-top: 10px; }
+        #wrong-list { list-style: none; padding: 0; }
+        #wrong-list li { padding: 8px 0; border-bottom: 1px dashed #eee; font-size: 0.9rem; }
+        .retry-btn { background: var(--text-main); color: white; border: none; padding: 15px; border-radius: 10px; cursor: pointer; font-weight: bold; margin-top: 15px; font-size: 1rem; }
     </style>
 </head>
 <body>
 
-<div id="app">
-    <div id="ui-header" style="display:none;">
-        <div class="progress-container"><div id="progress-bar"></div></div>
-    </div>
+<header class="top-bar">
+    <button class="exit-btn" onclick="finishQuiz()">終了</button>
+    <div class="timer" id="timer">残り --:--</div>
+</header>
 
-    <div id="start-screen" class="card">
-        <div style="background: #e6fffa; color: #38a169; width: 60px; height: 60px; line-height: 60px; border-radius: 50%; margin: 0 auto 20px; font-weight: bold; font-size: 24px;">A</div>
-        <h1 style="font-size: 24px; margin-bottom: 8px;">Spelling Master</h1>
-        <p style="color: #718096; margin-bottom: 32px;">日本語 ➔ 英語スペル</p>
-        <button class="btn-main" onclick="startApp()">特訓を開始する</button>
-    </div>
-
-    <div id="quiz-screen" class="card" style="display:none;">
-        <div id="word-count" style="font-size: 12px; color: #a0aec0; margin-bottom: 10px;">0 / 0</div>
-        <div class="question-word" id="word-display">...</div>
-        <input type="text" id="user-input" placeholder="English spelling..." autocomplete="off">
-        <div id="result-message"></div>
-        <button id="action-btn" class="btn-main" onclick="handleAction()">判定する</button>
-        <a class="exit-link" onclick="showResult()">途中で辞める</a>
-    </div>
-
-    <div id="result-screen" class="card" style="display:none;">
-        <h2 style="margin-top:0;">学習の記録</h2>
-        <div id="score-display" style="font-size: 40px; font-weight: bold; color: var(--primary-color); margin: 20px 0;">0%</div>
-        <p id="stats-text" style="color: #718096; margin-bottom: 24px;"></p>
-        <div id="wrong-area" style="display:none; text-align: left;">
-            <p style="font-weight: bold; font-size: 14px; color: #e53e3e; border-bottom: 2px solid #fff5f5; padding-bottom: 8px;">要復習リスト</p>
-            <div id="wrong-list" style="max-height: 200px; overflow-y: auto;"></div>
+<main class="app-container">
+    <div class="quiz-card" id="quiz-card">
+        <div class="progress" id="progress">0 / 0</div>
+        <div class="question-section">
+            <h1 class="eng-word" id="eng-word">読み込み中...</h1>
+            <div id="answer-detail" class="answer-detail" style="display:none;">
+                <p class="tap-notice">画面をタップして次へ</p>
+            </div>
         </div>
-        <button class="btn-main" onclick="location.reload()" style="margin-top:24px; background: #4a5568;">TOPに戻る</button>
+        <div class="options-grid" id="options-grid"></div>
+        <button class="idk-btn" id="idk-btn">わからない</button>
+        <div id="feedback-overlay" class="feedback-overlay"></div>
     </div>
-</div>
+
+    <div class="result-card" id="result-card" style="display:none;">
+        <h2>結果発表</h2>
+        <div class="score-circle"><span id="score-percent">0</span>%</div>
+        <p id="score-detail">0問中 0問正解</p>
+        <div class="wrong-list-area">
+            <h3>間違えた問題:</h3>
+            <ul id="wrong-list"></ul>
+        </div>
+        <button class="retry-btn" onclick="initQuiz()">もう一度解く</button>
+    </div>
+</main>
 
 <script>
-// 【日本語, 英語】の順に直しました！
-const rawData = `
-かろうじて,barely
-から〜を奪う,deprive
-隔たり・隙間,gap
-障害（物）,obstacles
-呼吸、息,breath
-しぐさ、身ぶり,gesture
-うなずき、会釈,nod
-を(急に強く)つかむ,seize
-を伸ばす、引っ張る,stretch
-どなる、わめく,yell
-を逮捕する,arrest
-を犯す,commit
-有罪の,guilty
-事件,incident
-罪のない、無罪の,innocent
-留置所,jail
-刑務所,prison
-証拠,proof
-自殺(的行為),suicide
-目撃者・証人,witness
-豊富な,abundant
-量・額,amount
-(を)計算する,calculate
-(〜に)等しい,equal
-過剰,excess
-多数の,numerous
-割合,proportion
-分量・数量,quantity
-合計の,total
-量・容積、((1巻)),volume
-目的地,destination
-出発する,depart
-港,port
-案内人・ガイド,guide
-天国,heaven
-狩り,hunt
-(宇宙)旅行,voyage
-予約する,reserve
-休む,rest
-を取り消す,cancel
-減少する,decrease
-を拡大する,expand
-を延長する,extend
-を制限する,restrict
-増加する,rise
-わきへ,aside
-端・ふち,edges
-内部の,internal
-近くの,nearby
-表面,surface
-一般の,general
-抽象的な,abstract
-複雑な,complex
-穏やかな,mild
-わかりやすい,plain
-とがった,sharp
-種類,sort
-標準・基準,standards
-平凡な,ordinary
-程度,extent
-並外れた,extraordinary
-極端な,extreme
-非常に,highly
-ばく大な,huge
-信じられない(ほどの),incredible
-強烈な、激しい,intense
-深刻な,severe
-最初の,initial
-順番,sequence
-ひと続き,series
-欠席して(いる),absent
-声に出して,aloud
-に出席する,attend
-を教育する,educate
-施設・設備,facilities
-研究所,institute
-奨学金,scholarship
-勝利,victory
-トーナメント,tournament
-を負かす,defeat
-房,bunch
-ダース,dozen
-あたり,per
-ポンド,pounds
-1枚,sheet
-現在の,current
-以前の,former
-最近,lately
-前の,previous
-を思い出す,recall
-雰囲気,atmosphere
-～行きの,bound
-地区,district
-出口,exit
-基礎・土台,foundation
-を囲む,surround
-利点、利益,benefits
-奇跡,miracle
-(を)克服する,overcome
-進歩,progress
-むき出しの,bare
-あごひげ,beard
-細胞,cells
-肺,lung
-筋肉,muscle
-器官,organ
-酸素,oxygen
-肌,skin
-魂,souls
-視力,vision
-式,ceremony
-正式な,formal
-機会・場合,occasion
-(に)参加する,participate
-出席している,present
-賞,prize
-商業的な,commercial
-サービス,service
-を建設する,construct
-を輸送する,transport
+    const rawData = `
+concept,概念
+insight,洞察
+logic,論理
+notion,考え
+define,定義
+regard,を〜とみなす
+conclusion,結論
+encounter,出会い
+scold,叱る
+warn,警告する
+laboratory,実験室
+examine,を調べる
+network,ネットワーク
+nuclear,原子力の
+robot,ロボット
+satellite,衛星
+signal,信号
+technique,技術
+virtual,仮想の
+broadcast,放送する
+financial,財政上の
+fund,基金
+insurance,保険
+invest,投資する
+owe,に借金がある
+discrimination,差別
+cruel,残酷な
+ignore,を無視する
+poverty,貧困
+prejudice,偏見
+bitter,にがい
+taste,味がする
+ingredients,材料
+propose,を提案する
+persuade,を説得させる
+convince,に確信させる
+respond,答える
+glance,ちらっと見ること
+stare,じっと見る
+observe,を観測する
+determine,を決める
+adopt,を採用する
+abandon,をあきらめる
+intend,つもりである
+options,選択
+suppose,を考える
+suspect,思う
+assume,だと仮定する
+estimate,を見積もる
+bet,を賭ける
+cancer,がん
+cough,せき
+cure,を治す
+disease,病気
+pain,痛み
+recover,を回復する
+suffer,苦しむ
+surgery,手術
+treat,を治療する
+wound,傷
+broad,広い
+curve,カーブ
+diameter,直径
+height,高さ
+narrow,狭い
+powder,粉
+rough,でこぼこの
+shallow,浅い
+steep,急な
+tiny,とても小さい
+relations,関係
+behalf,aに代わって
+residents,居住者
+union,組合
+pole,棒
+tank,タンク
+vehicle,車両
+engine,エンジン
+device,器具
+cage,ケージ
+capable,有能な
+charm,魅力
+courage,勇気
+conscious,意識的な
+humor,ユーモア
+loyal,忠実な
+mental,精神の
+potential,潜在力
+rational,合理的な
+tend,しがちである
+complicated,複雑な
+delicate,微妙な
+dull,退屈な
+vague,あいまいな
+category,範疇
+contrary,に反して
+rely,を信頼する
+interaction,相互作用
+link,関連
+substitute,を代わりに使う
+attract,を引き付ける
+aid,助け
+assist,を助ける
+contribute,に貢献する
+reward,報酬
+demonstrate,を示す
+enable,を可能にする
+heal,を治す
+appoint,を指定する
+protect,を保護する
+sorrow,悲しみ
+despair,絶望
+nasty,いやな
+anger,怒り
+awkward,気まずい
+horrible,恐ろしい
+jealous,嫉妬した
+miserable,みじめな
+sigh,ため息
+ashamed,を恥じて
 `;
 
-const allWords = rawData.trim().split('\n').map(line => {
-    const [jp, en] = line.split(',');
-    return { jp: jp.trim(), en: en.trim() };
-});
+    const TIME_LIMIT = 600; 
+    const QUESTION_COUNT = 100;
 
-let currentList = [];
-let currentIndex = 0;
-let correctCount = 0;
-let wrongItems = [];
-let isAnswered = false;
+    let vocabulary = rawData.trim().split('\n').filter(l => l.includes(',')).map(l => {
+        const [en, jp] = l.split(',');
+        return { en: en.trim(), jp: jp.trim() };
+    });
 
-function startApp() {
-    currentList = [...allWords].sort(() => Math.random() - 0.5);
-    currentIndex = 0; correctCount = 0; wrongItems = [];
-    document.getElementById('start-screen').style.display = "none";
-    document.getElementById('quiz-screen').style.display = "block";
-    document.getElementById('ui-header').style.display = "block";
-    setupQuestion();
-}
+    let quizList = [];
+    let currentIdx = 0;
+    let score = 0;
+    let wrongAnswers = [];
+    let timeLeft = TIME_LIMIT;
+    let timerInterval;
+    let isShowingDetail = false;
 
-function setupQuestion() {
-    isAnswered = false;
-    const item = currentList[currentIndex];
-    document.getElementById('word-display').innerText = item.jp;
-    document.getElementById('word-count').innerText = `${currentIndex + 1} / ${currentList.length}`;
-    document.getElementById('user-input').value = "";
-    document.getElementById('user-input').disabled = false;
-    document.getElementById('result-message').innerText = "";
-    document.getElementById('action-btn').innerText = "判定する";
-    document.getElementById('action-btn').style.background = "#48bb78";
-    
-    const progress = ((currentIndex) / currentList.length) * 100;
-    document.getElementById('progress-bar').style.width = `${progress}%`;
-    setTimeout(() => document.getElementById('user-input').focus(), 10);
-}
+    function initQuiz() {
+        clearInterval(timerInterval);
+        currentIdx = 0; score = 0; wrongAnswers = []; timeLeft = TIME_LIMIT; isShowingDetail = false;
+        
+        document.getElementById('quiz-card').style.display = 'flex';
+        document.getElementById('result-card').style.display = 'none';
+        document.getElementById('answer-detail').style.display = 'none';
+        
+        const shuffledVocab = [...vocabulary].sort(() => 0.5 - Math.random());
+        const selectedVocab = shuffledVocab.slice(0, QUESTION_COUNT);
 
-function handleAction() {
-    if (!isAnswered) checkAnswer();
-    else nextQuestion();
-}
+        quizList = selectedVocab.map(item => {
+            let distractors = vocabulary
+                .filter(v => v.en !== item.en)
+                .map(v => v.en)
+                .sort(() => 0.5 - Math.random())
+                .slice(0, 3);
+            
+            let choices = [...distractors, item.en].sort(() => 0.5 - Math.random());
+            
+            return { 
+                questionText: item.jp,
+                correctAnswer: item.en,
+                choices: choices 
+            };
+        });
 
-document.getElementById('user-input').addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') handleAction();
-});
-
-function checkAnswer() {
-    const userAns = document.getElementById('user-input').value.trim().toLowerCase();
-    const correctAns = currentList[currentIndex].en.toLowerCase();
-    const msg = document.getElementById('result-message');
-    const btn = document.getElementById('action-btn');
-    
-    isAnswered = true;
-    document.getElementById('user-input').disabled = true;
-    btn.innerText = "次へ";
-    btn.style.background = "#4a5568";
-
-    if (userAns === correctAns) {
-        msg.innerText = "Excellent!";
-        msg.style.color = "#38a169";
-        correctCount++;
-    } else {
-        msg.innerHTML = `<span style="font-size:14px; color:#a0aec0;">正解:</span><br>${currentList[currentIndex].en}`;
-        msg.style.color = "#e53e3e";
-        wrongItems.push(currentList[currentIndex]);
+        startTimer();
+        updateCard();
     }
-}
 
-function nextQuestion() {
-    currentIndex++;
-    if (currentIndex < currentList.length) setupQuestion();
-    else showResult();
-}
+    function startTimer() {
+        timerInterval = setInterval(() => {
+            if(timeLeft > 0) {
+                timeLeft--;
+                const min = Math.floor(timeLeft / 60);
+                const sec = timeLeft % 60;
+                document.getElementById('timer').innerText = `残り ${min}:${sec.toString().padStart(2,'0')}`;
+            } else { finishQuiz(); }
+        }, 1000);
+    }
 
-function showResult() {
-    document.getElementById('quiz-screen').style.display = "none";
-    document.getElementById('ui-header').style.display = "none";
-    document.getElementById('result-screen').style.display = "block";
-    const solved = isAnswered ? currentIndex + 1 : currentIndex;
-    const percent = solved === 0 ? 0 : Math.round((correctCount / solved) * 100);
-    document.getElementById('score-display').innerText = `${percent}%`;
-    document.getElementById('stats-text').innerText = `${solved}問中 ${correctCount}問正解`;
-    if (wrongItems.length > 0) {
-        document.getElementById('wrong-area').style.display = "block";
+    function updateCard() {
+        if (currentIdx >= quizList.length) return finishQuiz();
+        isShowingDetail = false;
+        document.getElementById('answer-detail').style.display = 'none';
+        document.getElementById('options-grid').style.pointerEvents = 'auto';
+        
+        const data = quizList[currentIdx];
+        document.getElementById('progress').innerText = `${currentIdx + 1} / ${quizList.length}`;
+        document.getElementById('eng-word').innerText = data.questionText;
+
+        const grid = document.getElementById('options-grid');
+        grid.innerHTML = '';
+        data.choices.forEach(choice => {
+            const btn = document.createElement('button');
+            btn.className = 'opt-btn';
+            btn.innerText = choice;
+            btn.onclick = (e) => { e.stopPropagation(); checkAnswer(choice); };
+            grid.appendChild(btn);
+        });
+    }
+
+    function checkAnswer(selected) {
+        if(isShowingDetail) return;
+        const data = quizList[currentIdx];
+        const isCorrect = (selected === data.correctAnswer);
+        const buttons = document.querySelectorAll('.opt-btn');
+        
+        if (isCorrect) {
+            score++;
+            buttons.forEach(b => { if(b.innerText === data.correctAnswer) b.classList.add('correct-glow'); });
+            showFeedback(true);
+            setTimeout(nextQuestion, 600);
+        } else {
+            wrongAnswers.push({q: data.questionText, a: data.correctAnswer});
+            buttons.forEach(b => {
+                if(b.innerText === data.correctAnswer) b.classList.add('correct-glow');
+                if(b.innerText === selected) b.classList.add('wrong-glow');
+            });
+            showFeedback(false);
+            showAnswerDetail();
+        }
+    }
+
+    function showAnswerDetail() {
+        isShowingDetail = true;
+        document.getElementById('options-grid').style.pointerEvents = 'none';
+        document.getElementById('answer-detail').style.display = 'block';
+        const card = document.getElementById('quiz-card');
+        const proceed = () => {
+            card.removeEventListener('click', proceed);
+            if(isShowingDetail) nextQuestion();
+        };
+        card.addEventListener('click', proceed);
+    }
+
+    function showFeedback(isCorrect) {
+        const overlay = document.getElementById('feedback-overlay');
+        overlay.innerText = isCorrect ? '◯' : '×';
+        overlay.style.color = isCorrect ? 'rgba(75, 181, 67, 0.8)' : 'rgba(255, 59, 48, 0.8)';
+        overlay.classList.add('show-feedback');
+        setTimeout(() => overlay.classList.remove('show-feedback'), 500);
+    }
+
+    function nextQuestion() {
+        currentIdx++;
+        updateCard();
+    }
+
+    function finishQuiz() {
+        clearInterval(timerInterval);
+        document.getElementById('quiz-card').style.display = 'none';
+        document.getElementById('result-card').style.display = 'flex';
+        const percent = Math.round((score / quizList.length) * 100) || 0;
+        document.getElementById('score-percent').innerText = percent;
+        document.getElementById('score-detail').innerText = `${quizList.length}問中 ${score}問正解`;
         const list = document.getElementById('wrong-list');
-        list.innerHTML = wrongItems.map(item => `
-            <div class="wrong-item">
-                <span style="font-weight:bold;">${item.jp}</span>
-                <span style="color:#718096;">${item.en}</span>
-            </div>
-        `).join('');
+        list.innerHTML = '';
+        wrongAnswers.forEach(item => {
+            const li = document.createElement('li');
+            li.innerHTML = `<b>${item.q}</b> : 正解は ${item.a}`;
+            list.appendChild(li);
+        });
     }
-}
+
+    document.getElementById('idk-btn').onclick = (e) => { 
+        e.stopPropagation(); 
+        checkAnswer("__SKIP__"); 
+    };
+
+    initQuiz();
 </script>
+
 </body>
 </html>
